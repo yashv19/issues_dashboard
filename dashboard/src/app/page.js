@@ -1,64 +1,85 @@
-import Image from "next/image";
+import Link from "next/link";
+import { issues } from "@/data/issues";
 import styles from "./page.module.css";
 
 export default function Home() {
+  const openIssues = issues.filter(issue => issue.state === 'open');
+  const closedIssues = issues.filter(issue => issue.state === 'closed');
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
   return (
     <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+      <header className={styles.header}>
+        <h1 className={styles.title}>GitHub Issues Dashboard</h1>
+        <div className={styles.stats}>
+          <span className={styles.statBadge}>
+            <span className={styles.openDot}></span>
+            {openIssues.length} Open
+          </span>
+          <span className={styles.statBadge}>
+            <span className={styles.closedDot}></span>
+            {closedIssues.length} Closed
+          </span>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      <main className={styles.main}>
+        <div className={styles.issuesList}>
+          {issues.map((issue) => (
+            <Link
+              href={`/issue/${issue.id}`}
+              key={issue.id}
+              className={styles.issueCard}
+            >
+              <div className={styles.issueHeader}>
+                <div className={styles.issueTitleRow}>
+                  <h2 className={styles.issueTitle}>{issue.title}</h2>
+                  <span className={`${styles.badge} ${styles[issue.state]}`}>
+                    {issue.state}
+                  </span>
+                </div>
+                <div className={styles.issueLabels}>
+                  {issue.labels.map((label) => (
+                    <span
+                      key={label.name}
+                      className={styles.label}
+                      style={{ backgroundColor: `#${label.color}` }}
+                    >
+                      {label.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.issueMeta}>
+                <span className={styles.issueNumber}>#{issue.number}</span>
+                <span className={styles.separator}>•</span>
+                <span className={styles.issueAuthor}>
+                  opened by {issue.user.login}
+                </span>
+                <span className={styles.separator}>•</span>
+                <span className={styles.issueDate}>
+                  {formatDate(issue.created_at)}
+                </span>
+                {issue.comments > 0 && (
+                  <>
+                    <span className={styles.separator}>•</span>
+                    <span className={styles.issueComments}>
+                      💬 {issue.comments}
+                    </span>
+                  </>
+                )}
+              </div>
+            </Link>
+          ))}
         </div>
       </main>
     </div>
