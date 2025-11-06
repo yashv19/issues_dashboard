@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import styles from './page.module.css'
+import Image from 'next/image'
+import FixWithDevinButton from './FixWithDevinButton'
 
 export default async function IssuePage ({ params }) {
   const { id } = await params
@@ -21,6 +23,20 @@ export default async function IssuePage ({ params }) {
   }
 
   const issue = await res.json()
+
+  // Fetch comments for this issue
+  let comments = []
+  if (issue.comments > 0) {
+    const commentsRes = await fetch(issue.comments_url, {
+      headers: {
+        Accept: 'application/vnd.github+json'
+      },
+      cache: 'no-store'
+    })
+    if (commentsRes.ok) {
+      comments = await commentsRes.json()
+    }
+  }
 
   const formatDate = dateString => {
     const date = new Date(dateString)
@@ -76,7 +92,6 @@ export default async function IssuePage ({ params }) {
           ← Back to Issues
         </Link>
 
-
         {issue.closed_at && (
           <div className={styles.closedBanner}>
             <span className={styles.closedIcon}>✓</span>
@@ -99,14 +114,10 @@ export default async function IssuePage ({ params }) {
               <strong>{issue.user.login}</strong> opened this issue on{' '}
               {formatDate(issue.created_at)}
             </span>
-            {issue.comments > 0 && (
-              <>
-                <span className={styles.separator}>•</span>
-                <span className={styles.metaText}>
-                  {issue.comments} comments
-                </span>
-              </>
-            )}
+            <span className={styles.separator}>•</span>
+            <span className={styles.metaText}>
+              💬 {issue.comments} comments
+            </span>
           </div>
 
           {issue.labels.length > 0 && (
@@ -127,9 +138,13 @@ export default async function IssuePage ({ params }) {
         <div className={styles.body}>
           <div className={styles.bodyHeader}>
             <div className={styles.authorInfo}>
-              <div className={styles.authorAvatar}>
-                {issue.user.login.charAt(0).toUpperCase()}
-              </div>
+              <Image
+                src={issue.user.avatar_url}
+                width={40}
+                height={40}
+                alt={`avatar url for ${issue.user.login}`}
+                className={styles.authorAvatar}
+              />
               <div>
                 <div className={styles.authorName}>{issue.user.login}</div>
                 <div className={styles.authorDate}>
@@ -140,6 +155,45 @@ export default async function IssuePage ({ params }) {
           </div>
 
           <div className={styles.bodyContent}>{formatBody(issue.body)}</div>
+        </div>
+
+        {/* Comments Section */}
+        {comments.length > 0 && (
+          <div className={styles.commentsSection}>
+            <h2 className={styles.commentsTitle}>
+              {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
+            </h2>
+            {comments.map(comment => (
+              <div key={comment.id} className={styles.comment}>
+                <div className={styles.bodyHeader}>
+                  <div className={styles.authorInfo}>
+                    <Image
+                      src={comment.user.avatar_url}
+                      width={40}
+                      height={40}
+                      alt={`avatar url for ${comment.user.login}`}
+                      className={styles.authorAvatar}
+                    />
+                    <div>
+                      <div className={styles.authorName}>
+                        {comment.user.login}
+                      </div>
+                      <div className={styles.authorDate}>
+                        commented on {formatDate(comment.created_at)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.bodyContent}>
+                  {formatBody(comment.body)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className={styles.buttonRow}>
+          <FixWithDevinButton issueId={id} />
         </div>
       </div>
     </div>
