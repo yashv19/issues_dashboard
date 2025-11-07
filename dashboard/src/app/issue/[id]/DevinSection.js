@@ -309,6 +309,7 @@ export default function DevinSection ({ issueId, issue }) {
         executePlan={executePlan}
         setError={setError}
         isPolling={isPolling}
+        planData={sessionData?.plan}
       />
     </div>
   )
