@@ -36,7 +36,6 @@ export async function GET(request, { params }) {
     }
 
     const sessionData = await statusResponse.json()
-    console.log('Session data retrieved:', sessionData)
 
     return NextResponse.json({
       success: true,
@@ -58,7 +57,7 @@ export async function GET(request, { params }) {
 // PUT /api/issues/[id] - Execute the action plan from an existing Devin session
 export async function PUT(request, { params }) {
   try {
-    const { id } = await params
+    await params
     const body = await request.json()
     const { issue, action_plan } = body
 
@@ -87,8 +86,8 @@ export async function PUT(request, { params }) {
       2. Create a new branch to work on the fix
       3. Create a PR once you have validated your changes work and the issue has been solved.
       4. Respond in your output here with a brief summary of what you did. Return this in your output as execution_summary.
-      
-      NOTE: DO NOT automerge the PR. This will be done manually by a human. 
+
+      NOTE: DO NOT automerge the PR. This will be done manually by a human.
     `
     // Create a new Devin session
     const devinResponse = await fetch('https://api.devin.ai/v1/sessions', {
@@ -112,58 +111,15 @@ export async function PUT(request, { params }) {
     const sessionData = await devinResponse.json()
     const sessionId = sessionData.session_id
 
-    const POLL_INTERVAL = 10000 // 10 seconds
-    const MAX_POLL_TIME = 600000 // 10 minutes max
-    const maxPolls = MAX_POLL_TIME / POLL_INTERVAL
+    console.log(`Execution session created: ${sessionId}`)
 
-    let hasStructuredOutput = false;
-    let devinSummary = '';
-    let pollCount = 0;
-    let pollResponse;
-
-    while(!hasStructuredOutput && pollCount < maxPolls) {
-      // Wait before polling
-      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL))
-      pollCount++
-
-      console.log(`Polling session (attempt ${pollCount})...`)
-
-      // Fetch session status
-      const statusResponse = await fetch(
-        `https://api.devin.ai/v1/sessions/${sessionId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${DEVIN_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      )
-
-      if (!statusResponse.ok) {
-        console.error(`Failed to fetch session status: ${statusResponse.status}`)
-        break
-      }
-
-      pollResponse = await statusResponse.json()
-
-      if (pollResponse.structured_output) {
-        hasStructuredOutput = true
-      }
-    }
-
-    if(hasStructuredOutput) {
-      console.log(`Devin Finished executing`);
-      devinSummary = pollResponse.structured_output.execution_summary
-    }
-    else if (pollCount >= maxPolls) {
-      throw new Error(`Timeout exceeded`)
-    }
-
-
+    // Return immediately with session ID - client will poll for results
     return NextResponse.json({
       success: true,
-      summary: devinSummary,
-      session_id: sessionId
+      session: {
+        session_id: sessionId,
+        status: 'pending',
+      },
     })
   } catch (error) {
     console.error('Error executing plan:', error)
@@ -201,7 +157,7 @@ export async function POST(request, { params }) {
       </issue_body>
 
       Come up with an action plan to resolve the issue. Then, come up with a confidence score (1-100) regarding this plan. Return the action_plan and confidence_score in your output.
-      
+
       Do not ask the user for confirmation or follow ups when you execute this task. The user will not be able to interact with you directly. Note: do not actually proceed with solving the issue. The user is only interested in a plan and confidence score.
     `.trim()
 
@@ -232,70 +188,12 @@ export async function POST(request, { params }) {
     const sessionId = sessionData.session_id
     console.log(`Session ID: ${sessionId}`)
 
-    const POLL_INTERVAL = 10000 // 10 seconds
-    const MAX_POLL_TIME = 300000 // 5 minutes max
-
-    const devinAction = {
-      plan: '',
-      confidence: 0
-    }
-    let pollCount = 0
-    const maxPolls = MAX_POLL_TIME / POLL_INTERVAL
-    let hasStructuredOutput = false
-    let latestStatusData = null
-
-    // Poll the session for updates until structured_output is available
-    while (!hasStructuredOutput && pollCount < maxPolls) {
-      // Wait before polling
-      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL))
-      pollCount++
-
-      console.log(`Polling session (attempt ${pollCount})...`)
-
-      // Fetch session status
-      const statusResponse = await fetch(
-        `https://api.devin.ai/v1/sessions/${sessionId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${DEVIN_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      )
-
-      if (!statusResponse.ok) {
-        console.error(`Failed to fetch session status: ${statusResponse.status}`)
-        break
-      }
-
-      latestStatusData = await statusResponse.json()
-
-      console.log(`Current status: ${latestStatusData.status_enum}`)
-      console.log('Session update:', JSON.stringify(latestStatusData, null, 2))
-
-      // Check if structured_output is available
-      if (latestStatusData.structured_output) {
-        hasStructuredOutput = true
-      }
-    }
-
-    // Parse structured output if available
-    if (hasStructuredOutput) {
-      console.log(`✅ Structured output received`)
-      devinAction.plan = latestStatusData.structured_output.action_plan
-      devinAction.confidence = latestStatusData.structured_output.confidence_score
-    } else if (pollCount >= maxPolls) {
-      throw new Error(`Timeout exceeded`)
-    }
-
+    // Return immediately with session ID - client will poll for results
     return NextResponse.json({
       success: true,
-      message: {
-        ...devinAction
-      },
       session: {
         session_id: sessionId,
-        poll_count: pollCount,
+        status: 'pending',
       },
     })
   } catch (error) {

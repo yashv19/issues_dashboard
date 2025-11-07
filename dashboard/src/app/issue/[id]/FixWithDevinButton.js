@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import styles from './page.module.css'
 
-export default function FixWithDevinButton({ issueId, createActionPlan, executePlan, setError }) {
+export default function FixWithDevinButton({ issueId, createActionPlan, executePlan, setError, isPolling }) {
   const [loading, setLoading] = useState(false)
   const [hasExistingSession, setHasExistingSession] = useState(false)
   const [isExecuted, setIsExecuted] = useState(false)
@@ -16,8 +16,10 @@ export default function FixWithDevinButton({ issueId, createActionPlan, executeP
     if (storedData) {
       try {
         const parsedData = JSON.parse(storedData)
-        setHasExistingSession(!parsedData.executed)
-        setIsExecuted(parsedData.executed)
+        // Has existing session if action plan received but not executed
+        const hasActionPlan = parsedData.action_plan_received && !parsedData.execution_received
+        setHasExistingSession(hasActionPlan)
+        setIsExecuted(parsedData.execution_received || false)
       } catch (err) {
         console.error('Error parsing localStorage data:', err)
       }
@@ -35,7 +37,8 @@ export default function FixWithDevinButton({ issueId, createActionPlan, executeP
       if (storedData) {
         const parsedData = JSON.parse(storedData)
 
-        if (!parsedData.executed && parsedData.action_plan_session_id) {
+        // If we have an action plan but haven't executed yet
+        if (parsedData.action_plan_received && !parsedData.execution_received && parsedData.action_plan_session_id) {
           // Execute the existing plan
           await executePlan(parsedData.action_plan_session_id)
           setIsExecuted(true)
@@ -55,8 +58,8 @@ export default function FixWithDevinButton({ issueId, createActionPlan, executeP
   }
 
   const getButtonText = () => {
-    if (loading) return 'Devin is working...'
-    if (isExecuted) return '✅ Executed'
+    if (loading || isPolling) return 'Devin is working...'
+    if (isExecuted) return 'Pending PR Approval'
     if (hasExistingSession) return '✨ Execute plan'
     return '✨ Fix with Devin'
   }
@@ -64,7 +67,7 @@ export default function FixWithDevinButton({ issueId, createActionPlan, executeP
   return (
     <button
       onClick={handleClick}
-      disabled={loading || isExecuted}
+      disabled={loading || isExecuted || isPolling}
       className={styles.fixButton}
     >
       {getButtonText()}
