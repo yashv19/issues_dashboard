@@ -40,7 +40,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({
       success: true,
-      structured_output: {...sessionData.structured_output},
+      structured_output: sessionData.structured_output ? {...sessionData.structured_output} : null,
       session: {
         session_id: sessionId,
         status: sessionData.status_enum,
