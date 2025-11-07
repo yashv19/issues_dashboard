@@ -1,40 +1,82 @@
-import styles from '../page.module.css'
+import styles from '../issue/[id]/page.module.css'
 
 export const formatBody = body => {
   if (!body) return null
-  // Simple markdown-like formatting
-  return body.split('\n').map((line, index) => {
+  
+  const lines = body.split('\n')
+  const result = []
+  let inCodeBlock = false
+  let codeLines = []
+  let codeLanguage = ''
+  let elementKey = 0
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    
+    if (line.startsWith('```')) {
+      if (!inCodeBlock) {
+        inCodeBlock = true
+        codeLanguage = line.substring(3).trim()
+        codeLines = []
+      } else {
+        result.push(
+          <div key={elementKey++} className={styles.codeBlock}>
+            <pre>{codeLines.join('\n')}</pre>
+          </div>
+        )
+        inCodeBlock = false
+        codeLines = []
+        codeLanguage = ''
+      }
+      continue
+    }
+
+    if (inCodeBlock) {
+      codeLines.push(line)
+      continue
+    }
+
     // Headers
     if (line.startsWith('## ')) {
-      return (
-        <h2 key={index} className={styles.bodyHeading}>
+      result.push(
+        <h2 key={elementKey++} className={styles.bodyHeading}>
           {line.substring(3)}
         </h2>
       )
+      continue
     }
+    
     // List items
     if (line.startsWith('- ')) {
-      return (
-        <li key={index} className={styles.bodyListItem}>
+      result.push(
+        <li key={elementKey++} className={styles.bodyListItem}>
           {line.substring(2)}
         </li>
       )
-    }
-    // Code blocks
-    if (line.startsWith('```')) {
-      return <div key={index} className={styles.codeBlock}></div>
+      continue
     }
 
     // Regular paragraph
     if (line.trim()) {
-      return (
-        <p key={index} className={styles.bodyText}>
+      result.push(
+        <p key={elementKey++} className={styles.bodyText}>
           {line}
         </p>
       )
+    } else {
+      result.push(<br key={elementKey++} />)
     }
-    return <br key={index} />
-  })
+  }
+
+  if (inCodeBlock && codeLines.length > 0) {
+    result.push(
+      <div key={elementKey++} className={styles.codeBlock}>
+        <pre>{codeLines.join('\n')}</pre>
+      </div>
+    )
+  }
+
+  return result
 }
 
 export const formatDate = dateString => {
