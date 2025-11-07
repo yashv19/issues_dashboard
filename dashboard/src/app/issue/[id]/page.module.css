@@ -150,6 +150,36 @@
   margin: 24px 0 12px 0;
 }
 
+.bodyHeading:first-child {
+  margin-top: 0;
+}
+
+.bodyText {
+  margin: 12px 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.bodyListItem {
+  margin: 8px 0;
+  margin-left: 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.codeBlock {
+  background-color: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  margin: 16px 0;
+  font-family: var(--font-geist-mono);
+  font-size: 13px;
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.5;
+}
+
 .authorInfo {
   display: flex;
   align-items: center;
