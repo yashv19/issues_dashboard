@@ -17,7 +17,10 @@ export default async function Home () {
     throw new Error('Failed to fetch issues')
   }
 
-  const issues = await res.json()
+  const allItems = await res.json()
+
+  // Filter out pull requests - PRs have a pull_request property
+  const issues = allItems.filter(item => !item.pull_request)
 
   const openIssues = issues.filter(issue => issue.state === 'open')
   const closedIssues = issues.filter(issue => issue.state === 'closed')

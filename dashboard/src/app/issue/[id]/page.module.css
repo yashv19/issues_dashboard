@@ -138,6 +138,18 @@
   background-color: var(--code-bg);
 }
 
+.bodyContent {
+  padding: 24px;
+  line-height: 1.2;
+}
+
+.bodyHeading {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 24px 0 12px 0;
+}
+
 .authorInfo {
   display: flex;
   align-items: center;
@@ -166,46 +178,6 @@
 .authorDate {
   font-size: 12px;
   color: var(--text-tertiary);
-}
-
-.bodyContent {
-  padding: 24px;
-  line-height: 1.6;
-}
-
-.bodyHeading {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 24px 0 12px 0;
-}
-
-.bodyHeading:first-child {
-  margin-top: 0;
-}
-
-.bodyText {
-  margin: 12px 0;
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.bodyListItem {
-  margin: 8px 0;
-  margin-left: 20px;
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.codeBlock {
-  background-color: var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 16px;
-  margin: 16px 0;
-  font-family: var(--font-geist-mono);
-  font-size: 13px;
-  overflow-x: auto;
 }
 
 .closedBanner {
@@ -276,10 +248,11 @@
   margin-bottom: 16px;
 }
 
-.buttonRow {
+.devinContent {
   margin-bottom: 16px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: start;
   gap: 12px;
   background-color: var(--foreground);
   border-radius: 6px;
@@ -313,6 +286,58 @@
 .fixButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.devinResponse {
+  margin-top: 16px;
+  background-color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px;
+  width: 100%;
+}
+
+.responseHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.responseTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.confidenceBadge {
+  background-color: #2c3e50;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.responsePlan {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+.devinError {
+  margin-top: 16px;
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 6px;
+  padding: 12px;
+  color: #c33;
+  font-size: 14px;
+  width: 100%;
 }
 
 @media (max-width: 768px) {

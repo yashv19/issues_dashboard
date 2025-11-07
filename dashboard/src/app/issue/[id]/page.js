@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import styles from './page.module.css'
 import Image from 'next/image'
-import FixWithDevinButton from './FixWithDevinButton'
+import DevinSection from './DevinSection'
+import { formatBody, formatDate } from '../../_utils/formatContent'
 
 export default async function IssuePage ({ params }) {
   const { id } = await params
@@ -36,53 +37,6 @@ export default async function IssuePage ({ params }) {
     if (commentsRes.ok) {
       comments = await commentsRes.json()
     }
-  }
-
-  const formatDate = dateString => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  const formatBody = body => {
-    if (!body) return null
-    // Simple markdown-like formatting
-    return body.split('\n').map((line, index) => {
-      // Headers
-      if (line.startsWith('## ')) {
-        return (
-          <h2 key={index} className={styles.bodyHeading}>
-            {line.substring(3)}
-          </h2>
-        )
-      }
-      // List items
-      if (line.startsWith('- ')) {
-        return (
-          <li key={index} className={styles.bodyListItem}>
-            {line.substring(2)}
-          </li>
-        )
-      }
-      // Code blocks
-      if (line.startsWith('```')) {
-        return <div key={index} className={styles.codeBlock}></div>
-      }
-      // Regular paragraph
-      if (line.trim()) {
-        return (
-          <p key={index} className={styles.bodyText}>
-            {line}
-          </p>
-        )
-      }
-      return <br key={index} />
-    })
   }
 
   return (
@@ -192,9 +146,9 @@ export default async function IssuePage ({ params }) {
           </div>
         )}
 
-        <div className={styles.buttonRow}>
-          <FixWithDevinButton issueId={id} />
-        </div>
+        {issue.state === 'open' && (
+          <DevinSection issueId={id} issue={issue} />
+        )}
       </div>
     </div>
   )
